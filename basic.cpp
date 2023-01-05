@@ -240,62 +240,46 @@ void dijkstra(int sz, int** graph, int src)
     // print the constructed distance array
     for(int i=0;i<sz;i++){
         graph[src][i]=dist[i];
-        graph[i][src]=dist[i];
+        graph[i][src]=dist[i];//
     }
     
 }
- 
+/*//////////////////////////THE STATION CLASS/////////////////////////////*/
 
+class Station{
+    bool shortestPath;
+};
 /*//////////////////////////THE SORTING FUNCTION/////////////////////////////*/
 
 
-template<class T>
-
-int getMax(vectorClass<T> &arr, int n)
-{
-    int mx = arr[0].start;
-    for (int i = 1; i < n; i++)
-        if (arr[i].start > mx)
-            mx = arr[i].start;
-    return mx;
-}
-
 
 template<class T>
-void countSort(T *arr, int n, int exp)
+void countSort(T *arr, int n)
 
 {
-    vectorClass<T> output;
-    
-    int i, count[10] = { 0 };
-
-    for (i = 0; i < n; i++){
-        count[(arr[i] / exp) % 10]++;
-        T temp1;
-        output.push_back(temp1);
-    }
-
-    for (i = 1; i < 10; i++){
-        count[i] += count[i - 1];
-    }
-    
-    for (i = n - 1; i >= 0; i--) {
-        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
-        count[(arr[i] / exp) % 10]--;
-    }
-    
-    for (i = 0; i < n; i++){
-        arr[i] = output[i];
-    }
-}
-
-// Radix Sortnya SOMEHOW GA JALAN
-template<class T>
-void radixsort(T &arr, int n)
-{
-    for (int exp = 1; 1440 / exp > 0; exp *= 10){
-        countSort<User>(&arr, n, exp);
-
+    for(int exp=1;exp<1440;exp*=10){
+        vectorClass<T> output;
+        
+        int i, count[10] = { 0 };
+        
+        for (i = 0; i < n; i++){
+            count[(arr[i] / exp) % 10]++;
+            T temp1;
+            output.push_back(temp1);
+        }
+        
+        for (i = 1; i < 10; i++){
+            count[i] += count[i - 1];
+        }
+        
+        for (i = n - 1; i >= 0; i--) {
+            output[count[(arr[i] / exp) % 10] - 1] = arr[i];
+            count[(arr[i] / exp) % 10]--;
+        }
+        
+        for (i = 0; i < n; i++){
+            arr[i] = output[i];
+        }
     }
 }
 
@@ -328,6 +312,7 @@ void basic(string selectedCase){
     vectorClass<User> request; //Store user requests
     string temp1, temp2, temp3, temp4;
     int a,b;
+    double doubleTemp;
     string line, out;
     
     
@@ -336,7 +321,38 @@ void basic(string selectedCase){
     int** point; //dont forget to delete the memory
     
     
-    if(map.is_open())
+    double depreciationConst;
+    int rentalCountLim;
+    
+    
+    if(bikeInfo.is_open()){ //bike info nya, jd harga, sm depreciation const sama rental count lim
+        
+  
+        bikeInfo>>depreciationConst;
+        bikeInfo>>rentalCountLim;
+        cout<<"rentalCount: "<<rentalCountLim<<endl;
+        cout<<"depreciationConst: "<<depreciationConst<<endl;
+        while(getline(bikeInfo,line)){
+            stringstream stream;
+            stream<<line;
+            cout<<line<<endl;
+        }
+        bikeInfo.close();
+    }
+    if(bike.is_open()){ //tiap bike id nya buat tiap bike type ada di station mana 
+        //B0 0 S1 10 0
+        while(getline(bike,line)){
+            stringstream stream;
+            stream<<line;
+            cout<<line<<endl;
+            stream>>temp1>>a>>temp2>>doubleTemp>>b;
+            //cout<<temp1<<" "<<a<<" "<<temp2<<" "<<doubleTemp<<" "<<b<<endl;
+            
+        }
+        bike.close();
+    }
+    
+    if(map.is_open()) //mapping
     {
         
         bool flag=false;
@@ -376,7 +392,7 @@ void basic(string selectedCase){
                  }
              }
             }
-            //matrix.check(); //ganti semua titik yg ngarah ke dirinya sendiri jadi -1; [i][i]=-1;
+
 map.close();
     } else cout<< "unable to open"<<endl<<endl;
     cout<<endl;
@@ -389,9 +405,9 @@ map.close();
     }
     cout<<endl;
     cout<<"after dijkstra"<<endl<<endl;
-    for(int i=0;i<col;i++){
+    /*for(int i=0;i<col;i++){
         dijkstra(col, point, i);
-    }
+    }*/
     
     for (int i=0; i<col;i++){
         for(int j=0;j<col;j++){
@@ -408,34 +424,19 @@ map.close();
             stream>>temp1>>temp2>>a>>b>>temp3>>temp4;
             User temp(temp1,temp2,a,b,temp3,temp4);
             request.push_back(temp);
-            //line=stream.str();
-           // cout<<line<<endl;
             flag++;
             
         }
         userReq.close();
     }else cout<< "unable to open"<<endl;
-   // radixsort(&request,request.size());
-    for(int i=0;i<6;i++){
-        countSort<User>(&request,request.size(),pow(10,i)); //sort the request with manual radix sort
-    }
+  
+    countSort<User>(&request,request.size()); //sort the request with manual radix sort
+    
     for(int i=0;i<request.size();i++){
         cout<<request[i]<<endl;
     }
-    /*
-    vectorClass<int> matrix (5,3);
-    cout<<matrix[1]<<endl;
-    vectorClass<vectorClass<int>> othermatrix (5,matrix);
-    cout<<othermatrix[1][0]<<endl; DEBUG */
-    /*
-    for (int i=0; i<col;i++){
-        for(int j=0;j<col;j++){
-            if(i==3&&j==3) cout<<"idk ";
-            else
-            cout<<finalmatrix[i][j]<<" ";
-        }
-        cout<<endl;
-    }*/
+ 
+   
     
 }
 
