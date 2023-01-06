@@ -246,8 +246,10 @@ void dijkstra(int sz, int** graph, int src)
 }
 
 /*/////////////////////////////////////////MAX HEAP///////////////////////*/
-void max_heap(int *a, int m, int n) {
-   int j, t;
+template<typename T>
+void max_heap(T *a, int m, int n) {
+   T t;
+    int j;
    t = a[m];
    j = 2 * m;
    while (j <= n) {
@@ -263,13 +265,62 @@ void max_heap(int *a, int m, int n) {
    a[j/2] = t;
    return;
 }
-void build_maxheap(int *a,int n) {
+template<typename T>
+void build_maxheap(T *a,int n) { //TODO!! build_maxheap dilakuin setelah semuanya masuk, mesti bikin jg pas dy delete spy O(log n)
    int k;
    for(k = n/2; k >= 1; k--) {
       max_heap(a,k,n);
    }
 }
+/*///////////////////////////////////RESIZEEEE////////////////////////////*/
+template<typename T>
+void ResizeArray(T *&orig, int size) {
+    T *resized = new T[size * 2];
+    for (int i = 0; i < size; i ++)
+        resized[i] = orig[i];
+    delete [] orig;
+    orig = resized;
+}
 /*////////////////////////////BICYCLE ID CLASS////////////////////////////*/
+class BicId{ //TODO!!
+public:
+    int id;
+    int rentCount;
+    double price;
+    int minTime; //(if the start time of the user is < than time than reject)
+    
+    BicId(){
+        id=0;
+        rentCount=0;
+        price=0.0;
+        minTime=0;
+    }
+    void addBike(int ID, int rentcount, double initPrice, int startTime){
+        id=ID;
+        rentCount=rentcount;
+        price=initPrice;
+        minTime=startTime;
+        
+    }
+    
+    friend ostream& operator << (ostream &os, const BicId &bike){
+        os<<bike.id<<" "<<bike.rentCount<<" "<<bike.price<<" "<<bike.minTime;
+        return os;
+    }
+    bool operator > (BicId a){
+        return price>a.price ? true : false;
+    }
+    bool operator <= (BicId a){
+        return price<=a.price ? true : false;
+    }
+    void operator = (const BicId a){
+        id=a.id;
+        rentCount=a.rentCount;
+        price=a.price;
+        minTime=a.minTime;
+    }
+    
+};
 /*//////////////////////////AVL TREE THINGY///////////////////////////////*/
 class BicType
 {
@@ -278,6 +329,38 @@ class BicType
     BicType *left;
     BicType *right;
     int height;
+    BicId *bikes;
+    int curr; //if curr == capacity-1 double the capacity, copy semuanya ( num of bikes=curr)
+    int capacity;
+    BicType(int num, int ID, int rentcount, double initPrice, int startTime){
+        key = num;
+        left = NULL;
+        right = NULL;
+        height = 1; // new node is initially
+                          // added at leaf
+
+        curr=1;
+        capacity=30;
+        bikes = new BicId[capacity];
+        bikes[curr].addBike(ID, rentcount, initPrice, startTime);
+    }
+    void add(int ID, int rentcount, double initPrice, int startTime){ //TODO!
+        if(curr==capacity-1){
+            ResizeArray(bikes, capacity);
+            capacity*=2;
+        }
+        curr++;
+        bikes[curr].addBike(ID, rentcount, initPrice, startTime);
+    }
+    void print(){
+        for(int i=1;i<=curr;i++){
+            cout<<"B"<<key<<" "<<bikes[i]<<endl;
+        }
+    }
+    void buildHeap(){
+        build_maxheap(bikes, curr);
+    }
+    
 };
  
 // A utility function to get the
@@ -299,14 +382,17 @@ int max(int a, int b)
 /* Helper function that allocates a
    new node with the given key and
    NULL left and right pointers. */
-BicType* newBicType(int key)
+BicType* newBicType(int key, int ID, int rentcount, double initPrice, int startTime)
 {
-    BicType* node = new BicType();
-    node->key = key;
-    node->left = NULL;
-    node->right = NULL;
-    node->height = 1; // new node is initially
-                      // added at leaf
+    BicType* node = new BicType(key, ID,  rentcount,  initPrice,  startTime);
+    
+    return(node);
+}
+
+BicType* addMoreBike(BicType* node, int ID, int rentcount, double initPrice, int startTime)
+{
+    node->add(ID,  rentcount,  initPrice,  startTime);
+    
     return(node);
 }
  
@@ -365,18 +451,21 @@ int getBalance(BicType *N)
 // Recursive function to insert a key
 // in the subtree rooted with node and
 // returns the new root of the subtree.
-BicType* insert(BicType* node, int key)
+BicType* insert(BicType* node, int key, int bikeID, int rentcount, double initPrice, int startTime)
 {
     /* 1. Perform the normal BST insertion */
     if (node == NULL)
-        return(newBicType(key));
+        return(newBicType(key, bikeID,   rentcount,  initPrice, startTime));
+    
  
     if (key < node->key)
-        node->left = insert(node->left, key);
+        node->left = insert(node->left, key, bikeID,   rentcount,  initPrice, startTime);
     else if (key > node->key)
-        node->right = insert(node->right, key);
+        node->right = insert(node->right, key, bikeID,   rentcount,  initPrice, startTime);
     else // Equal keys are not allowed in BST
-        return node;
+        //panggil buat tambahin Bikes ! TODO!!!!!!!!!!
+    { addMoreBike(node, bikeID, rentcount, initPrice, startTime);
+        return node;}
  
     /* 2. Update height of this ancestor node */
     node->height = 1 + max(height(node->left),
@@ -413,6 +502,7 @@ BicType* insert(BicType* node, int key)
     }
  
     /* return the (unchanged) node pointer */
+    
     return node;
 }
 void preOrder(BicType *root)
@@ -420,11 +510,29 @@ void preOrder(BicType *root)
     if(root != NULL)
     {
         cout << root->key << " ";
+        
         preOrder(root->left);
         preOrder(root->right);
     }
 }
- 
+void inOrder(BicType *root)
+{
+    if(root != NULL)
+    {
+        inOrder(root->left);
+        root->print();
+        inOrder(root->right);
+    }
+}
+
+void heapifyRoot(BicType *root){
+    if(root != NULL)
+    {
+        heapifyRoot(root->left);
+        root->buildHeap();
+        heapifyRoot(root->right);
+    }
+}
  
 /*//////////////////////////THE STATION CLASS/////////////////////////////*/
 
@@ -440,12 +548,18 @@ public:
         numBicType=0;
         shortestPath=false;
     }
-    void insertBike(int type){
-        root=insert(root,type);
+    void insertBike(int type, int bikeID,int rentcount,double initPrice, int startTime){
+        root=insert(root,type, bikeID,  rentcount,  initPrice, startTime);
         numBicType++;
     }
-    void output(){
+    void outputType(){
         preOrder(root);
+    }
+    void outputAll(){
+        inOrder(root);
+    }
+    void heapify(){
+        heapifyRoot(root);
     }
     
 };
@@ -573,11 +687,6 @@ map.close();
     listStation = new Station[col];
     
     
-    for(int i=0;i<col;i++){
-        Station temp;
-        listStation[i]=temp;
-    }
-    
     if(bikeInfo.is_open()){ //bike info nya, jd harga, sm depreciation const sama rental count lim
         
   
@@ -595,6 +704,9 @@ map.close();
     
     if(bike.is_open()){ //tiap bike id nya buat tiap bike type ada di station mana
         //B0 0 S1 10 0
+        // Bike_Type, Bike_Id, Station_Id, Rental_Price, and Rental_Count
+        //BicType* node, int key, int bikeID, int rentcount, double initPrice, int startTime
+        //int type, int bikeID,int rentcount,double initPrice, int startTime
         int station, bikeType;
         while(getline(bike,line)){
             stringstream stream;
@@ -603,14 +715,21 @@ map.close();
             stream>>temp1>>a>>temp2>>doubleTemp>>b;
             station = stoi(temp2.substr(1));
             bikeType = stoi(temp1.substr(1));
-            //cout<<listStation[station].numBicType;
-            listStation[station].insertBike(bikeType);
+           
+          listStation[station].insertBike(bikeType, a, b, doubleTemp, 0);
             
             
         }
         cout<<endl<<endl;
        for(int i=0;i<col;i++){
-            listStation[i].output();
+           cout<<"S"<<i<<endl<<endl;
+           listStation[i].heapify();
+           cout<<"outputType: "<<endl;
+           listStation[i].outputType();
+           cout<<endl;
+           cout<<"outputAll: "<<endl;
+           cout<<endl;
+           listStation[i].outputAll();
            cout<<endl;
         }
         bike.close();
@@ -626,7 +745,7 @@ map.close();
         cout<<endl;
     }
     cout<<endl;
-    cout<<"after dijkstra"<<endl<<endl;
+    cout<<"after dijkstra"<<endl<<endl; //di dijkstra kalo butuh aja
     /*for(int i=0;i<col;i++){
         dijkstra(col, point, i);
     }*/
@@ -653,10 +772,10 @@ map.close();
     }else cout<< "unable to open"<<endl;
   
     countSort<User>(&request,request.size()); //sort the request with manual radix sort
-    
+    /* //JANGAN D DELETE ini buat print request.
     for(int i=0;i<request.size();i++){
         cout<<request[i]<<endl;
-    }
+    }*/
  
    
     
