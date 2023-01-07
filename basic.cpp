@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <cmath>
+#define maxBikeType 50
 int** point; //matrix map nya di bikin universal variable spy bisa di akses di semua class dll
 double depreciationConst;
 int rentalCountLim;
@@ -18,7 +19,7 @@ int revenue=0;
 using namespace std;
 /*////////////////////////VECTOR CLASS///////////////////////*/
 template <typename T> class vectorClass {
- 
+
     // arr is the integer pointer
     // which stores the address of our vector
     T* arr;
@@ -30,8 +31,8 @@ template <typename T> class vectorClass {
     // current is the number of elements
     // currently present in the vector
     int current;
- 
 public:
+
     // Default constructor to initialise
     // an initial capacity of 1 element and
     // allocating storage using dynamic allocation
@@ -41,7 +42,7 @@ public:
         capacity = 1;
         current = 0;
     }
-    vectorClass(int row, T inside)
+    /*vectorClass(int row, T inside)
     {
         arr = new T[row];
         capacity = row;
@@ -49,7 +50,7 @@ public:
         for(int i=0;i<row;i++){
             arr[i]=inside;
         }
-    }
+    }*/
        //destructor to deallocate storage allocated by dynamic allocation
        //to prevent memory leak
  
@@ -116,12 +117,12 @@ public:
     int getcapacity() { return capacity; }
  
     // function to print array elements
-    void print()
+    void outputVector()
     {
         for (int i = 0; i < current; i++) {
-            cout << arr[i] << " ";
+            cout << arr[i] << endl;
         }
-        cout << endl;
+    
     }
     int operator /(int i){
         return arr[current]/i;
@@ -153,18 +154,35 @@ public:
 class User {
 public:
     string userID;
-    vectorClass<int> accBikeType;
+    vectorClass<int> accBikeType; //debug
     int start, end;
     int startStat, endStat;
+    bool *bikeType;
     User(string ID, vectorClass<int> bikes, int st, int en, int staSta, int endSta){
-        userID=ID;
+        bikeType = new bool[maxBikeType];
+        for(int i=0;i<maxBikeType;i++){
+            bikeType[i]=false;
+        }
         accBikeType=bikes;
+        int index=0;
+        userID=ID;
+        while(index<bikes.size()){
+            
+            bikeType[bikes[index]]=true;
+            index++;
+        }
         start=st;
         end=en;
         startStat=staSta;
         endStat=endSta;
     }
     User(){
+        vectorClass<int> *temp = new vectorClass<int>;
+        bikeType = new bool[maxBikeType];
+        for(int i=0;i<maxBikeType;i++){
+            bikeType[i]=false;
+        }
+        accBikeType=*temp;
         userID="0";
         start=0;
         end=0;
@@ -173,7 +191,8 @@ public:
     }
     friend ostream& operator << (ostream &os,  User &person){
         int index=0;
-        os<< person.userID<<" ";
+        os<< person.userID<<" "; //user debug
+       
     
         while(index<person.accBikeType.size()){
             if(index!=0)os<<",";
@@ -187,7 +206,10 @@ public:
         return start/a;
     }
     
-    void operator = ( User &b){
+    void operator = ( User &b){ //gara gara ini anjengg, biketype nya hrs d samain juga AAAAAA
+        for(int i=0;i<maxBikeType;i++){
+            bikeType[i]=b.bikeType[i];
+        }
         userID=b.userID;
         accBikeType=b.accBikeType;
         start=b.start;
@@ -195,6 +217,12 @@ public:
         startStat=b.startStat;
         endStat=b.endStat;
      
+    }
+    bool getBool(int type){
+        return bikeType[type];
+    }
+    bool operator > (const User &b){
+        return stoi(userID.substr(1))>stoi(b.userID.substr(1));
     }
     
 };
@@ -359,6 +387,7 @@ void ResizeArray(T *&orig, int size) {
 /*////////////////////////////BICYCLE ID CLASS////////////////////////////*/
 class BicId{ //TODO!!
 public:
+    int bikeType;
     int id;
     int rentCount;
     double price;
@@ -370,34 +399,37 @@ public:
         price=0.0;
         minTime=0;
     }
-    void addBike(int ID, int rentcount, double initPrice, int startTime){
+    BicId(int type, int ID, int rentcount, double currPrice, int startTime){
+        bikeType = type;
         id=ID;
         rentCount=rentcount;
-        price=initPrice;
+        price=currPrice;
         minTime=startTime;
-        
     }
-    
     friend ostream& operator << (ostream &os, const BicId &bike){
-        os<<bike.id<<" "<<bike.rentCount<<" "<<bike.price<<" "<<bike.minTime;
+        
+        os<<"B"<<bike.bikeType<<" "<<bike.id<<" "<<bike.rentCount<<" "<<bike.price<<" "<<bike.minTime;
         return os;
     }
-    bool operator > (BicId a){
+    bool operator > (BicId a){ //todo
         return price>a.price ? true : false;
     }
-    bool operator <= (BicId a){
+    bool operator <= (BicId a){//todo
         
         return price<=a.price ? true : false;
     }
-    void operator = (const BicId a){
+    bool operator >= (BicId a){//todo
+        
+        return price>=a.price ? true : false;
+    }
+    void operator = (const BicId a){ //todo
         id=a.id;
         rentCount=a.rentCount;
         price=a.price;
         minTime=a.minTime;
+        bikeType = a.bikeType;
     }
-    BicId* find(int startTime){
-        
-    }
+    
 };
 /*//////////////////////////AVL TREE THINGY///////////////////////////////*/
 class BicType
@@ -407,76 +439,25 @@ class BicType
     BicType *left;
     BicType *right;
     int height;
-    BicId *bikes;
+   // BicId *bikes;
     int curr; //if curr == capacity-1 double the capacity, copy semuanya ( num of bikes=curr)
-    int capacity;
-    BicType(int num, int ID, int rentcount, double initPrice, int startTime){
+    BicType(int num){
         key = num;
         left = NULL;
         right = NULL;
         height = 1; // new node is initially
                           // added at leaf
-
         curr=1;
-        capacity=30;
-        bikes = new BicId[capacity];
-        bikes[curr].addBike(ID, rentcount, initPrice, startTime);
     }
-    void add(int ID, int rentcount, double initPrice, int startTime){ //TODO!
-        if(curr==capacity-1){
-            ResizeArray(bikes, capacity);
-            capacity*=2;
-        }
-        curr++;
-        bikes[curr].addBike(ID, rentcount, initPrice, startTime);
-    }
+    
     void print(){
-        for(int i=1;i<=curr;i++){
-            cout<<"B"<<key<<" "<<bikes[i]<<endl;
-        }
-    }
-    void buildHeap(){
-        build_maxheap(bikes, curr);
-    }
-    BicId* returnMatch(int startTime){
-        if (curr<1){
-            return NULL;
-        }
-        return bikes[1].find(startTime); //balikinnya pake ampersand &
-        
-    }
-    void deleteRoot()
-    {
-        // Get the last element
-        //BicId lastElement = bikes[curr];
-     
-        // Replace root with last element
-        bikes[1] = bikes[curr];
-     
-        // Decrease size of heap by 1
-        curr--;
-     
-        // heapify the root node
-        heapifyMaxHeap(bikes, curr, 1);
+        cout<<"B"<<key<<" has "<<curr<<" bikes"<<endl;
     }
     
-    void insertNode(BicId Key)
-    {
-        if(curr==capacity-1){
-            ResizeArray(bikes, capacity);
-            capacity*=2;
-        }
-        // Increase the size of Heap by 1
-        curr++;
-     
-        // Insert the element at end of Heap
-        bikes[curr] = Key;
-     
-        // Heapify the new node following a
-        // Bottom-up approach
-        heapifyInsertion(bikes, curr, curr);
+    int size(){
+        return curr; //notes : if curr==0 delete bic type
     }
-    
+
 };
  
 // A utility function to get the
@@ -495,26 +476,9 @@ int max(int a, int b)
     return (a > b)? a : b;
 }
  
-/* Helper function that allocates a
-   new node with the given key and
-   NULL left and right pointers. */
-BicType* newBicType(int key, int ID, int rentcount, double initPrice, int startTime)
-{
-    BicType* node = new BicType(key, ID,  rentcount,  initPrice,  startTime);
-    
-    return(node);
-}
 
-BicType* addMoreBike(BicType* node, int ID, int rentcount, double initPrice, int startTime)
-{
-    node->add(ID,  rentcount,  initPrice,  startTime);
-    
-    return(node);
-}
- 
-// A utility function to right
-// rotate subtree rooted with y
-// See the diagram given above.
+
+
 BicType *rightRotate(BicType *y)
 {
     BicType *x = y->left;
@@ -563,24 +527,140 @@ int getBalance(BicType *N)
         return 0;
     return height(N->left) - height(N->right);
 }
- 
+BicType* minValueNode(BicType* node)
+{
+    BicType* current = node;
+  
+    /* loop down to find the leftmost leaf */
+    while (current->left != NULL)
+        current = current->left;
+  
+    return current;
+}
+
+BicType* deleteNode(BicType* root, int key)
+{
+      
+    // STEP 1: PERFORM STANDARD BST DELETE
+    if (root == NULL)
+        return root;
+  
+    // If the key to be deleted is smaller
+    // than the root's key, then it lies
+    // in left subtree
+    if ( key < root->key )
+        root->left = deleteNode(root->left, key);
+  
+    // If the key to be deleted is greater
+    // than the root's key, then it lies
+    // in right subtree
+    else if( key > root->key )
+        root->right = deleteNode(root->right, key);
+  
+    // if key is same as root's key, then
+    // This is the node to be deleted
+    else
+    {
+        // node with only one child or no child
+        if( (root->left == NULL) ||
+            (root->right == NULL) )
+        {
+            BicType* temp = root->left ?
+                         root->left :
+                         root->right;
+  
+            // No child case
+            if (temp == NULL)
+            {
+                temp = root;
+                root = NULL;
+            }
+            else // One child case
+            *root = *temp; // Copy the contents of
+                           // the non-empty child
+            free(temp);
+        }
+        else
+        {
+            // node with two children: Get the inorder
+            // successor (smallest in the right subtree)
+            BicType* temp = minValueNode(root->right);
+  
+            // Copy the inorder successor's
+            // data to this node
+            root->key = temp->key;
+  
+            // Delete the inorder successor
+            root->right = deleteNode(root->right,
+                                     temp->key);
+        }
+    }
+  
+    // If the tree had only one node
+    // then return
+    if (root == NULL)
+    return root;
+  
+    // STEP 2: UPDATE HEIGHT OF THE CURRENT NODE
+    root->height = 1 + max(height(root->left),
+                           height(root->right));
+  
+    // STEP 3: GET THE BALANCE FACTOR OF
+    // THIS NODE (to check whether this
+    // node became unbalanced)
+    int balance = getBalance(root);
+  
+    // If this node becomes unbalanced,
+    // then there are 4 cases
+  
+    // Left Left Case
+    if (balance > 1 &&
+        getBalance(root->left) >= 0)
+        return rightRotate(root);
+  
+    // Left Right Case
+    if (balance > 1 &&
+        getBalance(root->left) < 0)
+    {
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+  
+    // Right Right Case
+    if (balance < -1 &&
+        getBalance(root->right) <= 0)
+        return leftRotate(root);
+  
+    // Right Left Case
+    if (balance < -1 &&
+        getBalance(root->right) > 0)
+    {
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+  
+    return root;
+}
 // Recursive function to insert a key
 // in the subtree rooted with node and
 // returns the new root of the subtree.
-BicType* insert(BicType* node, int key, int bikeID, int rentcount, double initPrice, int startTime)
+BicType* insert(BicType* node, int key)
 {
     /* 1. Perform the normal BST insertion */
-    if (node == NULL)
-        return(newBicType(key, bikeID,   rentcount,  initPrice, startTime));
+    if (node == NULL){
+        BicType* newbiketype = new BicType(key);
+        
+        return newbiketype ;
+    }
     
  
     if (key < node->key)
-        node->left = insert(node->left, key, bikeID,   rentcount,  initPrice, startTime);
+        node->left = insert(node->left, key);
     else if (key > node->key)
-        node->right = insert(node->right, key, bikeID,   rentcount,  initPrice, startTime);
+        node->right = insert(node->right, key);
     else // Equal keys are not allowed in BST
         //panggil buat tambahin Bikes ! TODO!!!!!!!!!!
-    { addMoreBike(node, bikeID, rentcount, initPrice, startTime);
+    { node->curr++; //todo
         return node;}
  
     /* 2. Update height of this ancestor node */
@@ -641,14 +721,6 @@ void inOrder(BicType *root)
     }
 }
 
-void heapifyRoot(BicType *root){
-    if(root != NULL)
-    {
-        heapifyRoot(root->left);
-        root->buildHeap();
-        heapifyRoot(root->right);
-    }
-}
 /*//////////////////////////////TAKE THE BIKE TYPES///////////////////////*/
 vectorClass<int> bikeTypeConvert(string biketypes){
     vectorClass<int> temp;
@@ -674,38 +746,147 @@ BicType* search( BicType* root, int key)
     // Key is smaller than root's key
     return search(root->left, key);
 }
+ /*////////////////////MERGE SORTING ALGO/////////////////////////////////*/
+template<typename T>
+void merge(T array[], int const left, int const mid,
+           int const right)
+{
+    auto const subArrayOne = mid - left + 1;
+    auto const subArrayTwo = right - mid;
  
+    // Create temp arrays
+    auto *leftArray = new T[subArrayOne],
+         *rightArray = new T[subArrayTwo];
+ 
+    // Copy data to temp arrays leftArray[] and rightArray[]
+    for (auto i = 0; i < subArrayOne; i++)
+        leftArray[i] = array[left + i];
+    for (auto j = 0; j < subArrayTwo; j++)
+        rightArray[j] = array[mid + 1 + j];
+ 
+    auto indexOfSubArrayOne
+        = 0, // Initial index of first sub-array
+        indexOfSubArrayTwo
+        = 0; // Initial index of second sub-array
+    int indexOfMergedArray
+        = left; // Initial index of merged array
+ 
+    // Merge the temp arrays back into array[left..right]
+    while (indexOfSubArrayOne < subArrayOne
+           && indexOfSubArrayTwo < subArrayTwo) {
+        if (leftArray[indexOfSubArrayOne]
+            >= rightArray[indexOfSubArrayTwo]) {
+            array[indexOfMergedArray]
+                = leftArray[indexOfSubArrayOne];
+            indexOfSubArrayOne++;
+        }
+        else {
+            array[indexOfMergedArray]
+                = rightArray[indexOfSubArrayTwo];
+            indexOfSubArrayTwo++;
+        }
+        indexOfMergedArray++;
+    }
+    // Copy the remaining elements of
+    // left[], if there are any
+    while (indexOfSubArrayOne < subArrayOne) {
+        array[indexOfMergedArray]
+            = leftArray[indexOfSubArrayOne];
+        indexOfSubArrayOne++;
+        indexOfMergedArray++;
+    }
+    // Copy the remaining elements of
+    // right[], if there are any
+    while (indexOfSubArrayTwo < subArrayTwo) {
+        array[indexOfMergedArray]
+            = rightArray[indexOfSubArrayTwo];
+        indexOfSubArrayTwo++;
+        indexOfMergedArray++;
+    }
+    delete[] leftArray;
+    delete[] rightArray;
+}
+ 
+// begin is for left index and end is
+// right index of the sub-array
+// of arr to be sorted */
+template<typename T>
+void mergeSort(T array[], int const begin, int const end)
+{
+    if (begin >= end)
+        return; // Returns recursively
+ 
+    auto mid = begin + (end - begin) / 2;
+    mergeSort(array, begin, mid);
+    mergeSort(array, mid + 1, end);
+    merge(array, begin, mid, end);
+}
 /*//////////////////////////THE STATION CLASS/////////////////////////////*/
 
 
 class Station{
 public:
-    bool shortestPath; //ud pernah di dijkstra blm
-    int numBicType;//number of bicycle type
+    //bool shortestPath; //dijkstra lgsg aj
+    int numBic;//number of bicycle type
     BicType* root; //bikin avl tree
+    vectorClass<BicId> theBikes;
     
     Station(){
         root=NULL;
-        numBicType=0;
-        shortestPath=false;
+        numBic=0;
+        
     }
     void insertBike(int type, int bikeID,int rentcount,double initPrice, int startTime){
-        root=insert(root,type, bikeID,  rentcount,  initPrice, startTime);
-        numBicType++;
+        root=insert(root,type); // TODO
+        BicId* temp= new BicId(type, bikeID,  rentcount,  initPrice, startTime);
+        theBikes.push_back(*temp);
+        numBic++;
+    }
+
+    BicId* deleteBike(int startTime, int endTime, int station1, int station2, bool* type){
+        int index=0;
+        BicId* temp = NULL;
+     
+        while(theBikes.size()>0&&index<theBikes.size()){
+            
+            if((theBikes[index].minTime<=startTime)&&((startTime+point[station1][station2])<endTime)&&(type[theBikes[index].bikeType]==true)){ //COMEBACK  //todo
+                /*if((--search(root, theBikes[index].bikeType)->curr)<1){
+                    root=deleteNode(root, theBikes[index].bikeType);
+                    
+                    
+                }*/
+                numBic--;
+                //kurangin jumlah sepeda di bic type di station ini
+                //cek klo curr == 0 delete node bic type nya
+                
+                swap(theBikes[index], theBikes[theBikes.size()-1]);
+                temp=&theBikes[theBikes.size()-1];
+                //debug
+                cout<<endl<<"sebelum pop: "<<endl<<theBikes.size()<<endl;
+                theBikes.pop();
+                if(theBikes.size()>0){
+                    cout<<"setelah pop: "<<theBikes.size()<<endl;
+                    mergeSort(&theBikes, 0, theBikes.size()-1);
+                    
+                }
+                break;
+            }
+            index++;
+        }
+        
+        return temp;
+    }
+    void printBike(){
+        theBikes.outputVector();
     }
     void outputType(){
         preOrder(root);
     }
-    void outputAll(){
+    void outputInfo(){
         inOrder(root);
     }
-    void heapify(){
-        heapifyRoot(root);
-    }
-    BicType* find (int key)
-    {
-        return search(root,key);
-        
+    void mergesort(){
+        mergeSort(&theBikes, 0, theBikes.size()-1);
     }
     
 };
@@ -743,18 +924,29 @@ void countSort(T *arr, int n)
     }
 }
 
-
-
-
-
-class Node{
-    
-};
-
-class mainList{
-    
-};
-
+/*///////////////////////////////INSERTION SORT///////////*/
+template <typename T>
+void insertionSort(T arr[], int n)
+{
+    int i,j;
+    T key;
+    for (i = 1; i < n; i++)
+    {
+        key = arr[i];
+        j = i - 1;
+ 
+        // Move elements of arr[0..i-1],
+        // that are greater than key, to one
+        // position ahead of their
+        // current position
+        while (j >= 0 && arr[j] > key)
+        {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }
+}
 
 
 /*//////////////////////////THE MAIN FUNCTION/////////////////////////////*/
@@ -765,6 +957,11 @@ void basic(string selectedCase){
     cout << "start your basic version of data structure final from here!" << endl;
     string casePath= "./testcases/"+selectedCase;
     ifstream map, userReq, bike, bikeInfo;
+    
+    ofstream transferLog("transfer_log.txt");
+    ofstream reqResult("user_result.txt");
+    ofstream finalBikes("station_status.txt");
+
     map.open(casePath+"/map.txt");
     userReq.open(casePath+"/user.txt");
     bike.open(casePath+"/bike.txt");
@@ -774,8 +971,7 @@ void basic(string selectedCase){
     int a,b,c,d;
     double doubleTemp;
     string line, out;
-    
-    
+
    
     int col=1;
      //dont forget to delete the memory
@@ -860,8 +1056,9 @@ map.close();
             stream>>temp1>>a>>temp2>>doubleTemp>>b;
             station = stoi(temp2.substr(1));
             bikeType = stoi(temp1.substr(1));
-           
-          listStation[station].insertBike(bikeType, a, b, doubleTemp, 0);
+            if(doubleTemp>=0&&b<rentalCountLim&&station<col){
+                listStation[station].insertBike(bikeType, a, b, doubleTemp, 0);
+            } //kalo hargany lebih besar = dari 0, dan rental count kurang dari rental count lim masih bisa d pake, jadi di insert bike nya else gaush masuk
             
             
         }
@@ -880,7 +1077,7 @@ map.close();
         cout<<endl;
     }
     cout<<endl;
-    cout<<"after dijkstra"<<endl<<endl; //di dijkstra kalo butuh aja
+    cout<<"after dijkstra"<<endl<<endl;
     for(int i=0;i<col;i++){
         dijkstra(col, point, i);
     }
@@ -897,6 +1094,7 @@ map.close();
     //User_Id, Accept_Bike_Type, Start_Time, End_Time, Start_Point, End_Point
     //U4 B1 327 469 S3 S1
     if(userReq.is_open()){
+        intTemp.clear();
         while(getline(userReq,line)){
             stringstream stream;
             stream<<line;
@@ -904,7 +1102,7 @@ map.close();
             intTemp=bikeTypeConvert(temp2);
             c=stoi(temp3.substr(1));
             d=stoi(temp4.substr(1));
-            
+         //   User(string ID, vectorClass<int> bikes, int st, int en, int staSta, int endSta){
             User temp(temp1,intTemp,a,b,c,d);//temp3, 4 jadi int, potong S depannya, temp2 jadi vector of int
             request.push_back(temp);
             flag++;
@@ -912,68 +1110,129 @@ map.close();
         }
         userReq.close();
     }else cout<< "unable to open"<<endl;
+    
+    insertionSort(&request,request.size());
   
     countSort<User>(&request,request.size()); //sort the request with manual radix sort
     
-
     for(int i=0;i<col;i++){
+        listStation[i].mergesort();
+    }
+    for(int i=0;i<request.size();i++){
+        cout<<request[i]<<endl;
+    }
+    
+    //DEBUG
+    /*
+    BicId* temporaryDebug;
+    
+    for(int i=0;i<col;i++){
+        
         cout<<"S"<<i<<endl<<endl;
-        listStation[i].heapify();
         cout<<"outputType: "<<endl;
         listStation[i].outputType();
         cout<<endl;
-        cout<<"outputAll: "<<endl;
+        cout<<"outputInfo: "<<endl;
         cout<<endl;
-        listStation[i].outputAll();
+        listStation[i].outputInfo();
         cout<<endl;
-     }
+        cout<<"di station "<<i<<" ada bike:"<<endl;
+        listStation[i].printBike();
+        cout<<endl;
+        listStation[i].mergesort();
+        cout<<"di station "<<i<<" ada bike yang uda di atur:"<<endl;
+        listStation[i].printBike();
+        cout<<endl;
+        temporaryDebug=listStation[i].deleteBike(4);
+        cout<<"di station "<<i<<" ada bike yang uda di delete paling tinggi:"<<endl;
+        listStation[i].printBike();
+        cout<<endl;
+        cout<<"outputType setelah deletion: "<<endl;
+        listStation[i].outputType();
+        cout<<endl;
+        
+     }*/
     cout<<endl;
+    /*
     cout<<"mulai dr sini"<<endl;
-    listStation[3].outputAll();
+    listStation[3].outputInfo();
     cout<<endl<<endl;
     
     listStation[3].root->left->deleteRoot();
     
     cout<<endl<<endl;
     
-    listStation[3].outputAll();
+    listStation[3].outputInfo();
     
     
     cout<<endl<<"kelar"<<endl;
 
     
+    */
     
+    for(int i=0;i<col;i++){
+        
+        cout<<"S"<<i<<endl<<endl;
+        cout<<"outputType sebelum proses: "<<endl;
+        listStation[i].outputType();
+        cout<<endl;
+        cout<<"outputInfo sebelum proses: "<<endl;
+        cout<<endl;
+        listStation[i].outputInfo();
+        cout<<endl;
+        cout<<"di station "<<i<<" ada bike:"<<endl;
+        listStation[i].printBike();
+        cout<<endl;
+        
+        
+     }
     
-    
-
     intTemp.clear();
     int indexReq=0;
     int indexBikeType=0;
     int indexBikeTypeVector;
+    BicId* bikeStore=NULL;
+    /*cout<<endl<<endl<<"MARI DEBUGGGGG"<<endl<<request[0]<<endl<<endl;
+    bikeStore=listStation[request[0].startStat].deleteBike(request[0].start,request[0].end, request[0].startStat, request[0].endStat, request[0].bikeType);*/
     
-    vectorClass<BicType*> bikeTypeVector;
+    //BicId* deleteBike(int startTime, int endTime, int station1, int station2, bool type[]){
+   // int startTime, int endTime, int station1, int station2, bool type[]
+   
     while(indexReq<request.size()){
-        bikeTypeVector.clear();
         indexBikeType=0;
-        cout<<request[indexReq]<<endl;
-        while(indexBikeType<request[indexReq].accBikeType.size()){
-            if(listStation[request[indexReq].startStat].find(request[indexReq].accBikeType[indexBikeType])!=NULL){
-                bikeTypeVector.push_back(listStation[request[indexReq].startStat].find(request[indexReq].accBikeType[indexBikeType]));
-            }
-            indexBikeType++;
+        //cout<<request[indexReq]<<endl;
+        bikeStore=listStation[request[indexReq].startStat].deleteBike(request[indexReq].start,request[indexReq].end, request[indexReq].startStat, request[indexReq].endStat, request[indexReq].bikeType);
+        if(bikeStore==NULL){
+            cout<<"HELLO BESTIE AKU NOMOR "<<request[indexReq];
         }
-        if(bikeTypeVector.size()==0){cout<<endl;} // print yg null semua,
-        else {
-            cout<<"debuging"<<endl;
-            cout<<bikeTypeVector[0]->bikes[1]<<endl;
-            bikeTypeVector[0]->bikes[1].minTime++;
-            cout<<bikeTypeVector[0]->bikes[1]<<endl;
-            bikeTypeVector.print();
-            //cek ada yg matching ga
-        }
+        
+       
+        
        
         indexReq++;
     }
+    cout<<endl<<endl<<"PROSEESSSSS!!!!"<<endl<<endl;
+    for(int i=0;i<col;i++){
+        
+        cout<<"S"<<i<<endl<<endl;
+        cout<<"outputType setelah proses: "<<endl;
+        listStation[i].outputType();
+        cout<<endl;
+        cout<<"outputInfo setelah proses: "<<endl;
+        cout<<endl;
+        listStation[i].outputInfo();
+        cout<<endl;
+        cout<<"di station "<<i<<" ada bike:"<<endl;
+        listStation[i].printBike();
+        cout<<endl;
+        
+        
+     }
+    
+     transferLog.close();
+     reqResult.close();
+     finalBikes.close();
+
 }
 
 
