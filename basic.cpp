@@ -8,56 +8,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <cmath>
+int** point; //matrix map nya di bikin universal variable spy bisa di akses di semua class dll
+double depreciationConst;
+int rentalCountLim;
+int revenue=0;
 
 
 
 using namespace std;
-/*//////////////////////////THE CLASSES/////////////////////////////*/
-
-
-class User {
-public:
-    string userID;
-    string accBikeType;
-    int start, end;
-    string startStat, endStat;
-    User(string ID, string bikes, int st, int en, string staSta, string endSta){
-        userID=ID;
-        accBikeType=bikes;
-        start=st;
-        end=en;
-        startStat=staSta;
-        endStat=endSta;
-    }
-    User(){
-        userID="0";
-        accBikeType="0";
-        start=0;
-        end=0;
-        startStat="0";
-        endStat="0";
-    }
-    friend ostream& operator << (ostream &os, const User &person){
-        os<< person.userID<<" "<<person.accBikeType<<" "<<person.start<<" "<<person.end<<" "<<person.startStat<<" "<<person.endStat;
-        return os;
-    }
-    int operator / (int a){
-        return start/a;
-    }
-    
-    void operator = (const User &b){
-        userID=b.userID;
-        accBikeType=b.accBikeType;
-        start=b.start;
-        end=b.end;
-        startStat=b.startStat;
-        endStat=b.endStat;
-     
-    }
-    
-};
-
-
+/*////////////////////////VECTOR CLASS///////////////////////*/
 template <typename T> class vectorClass {
  
     // arr is the integer pointer
@@ -147,6 +106,8 @@ public:
  
     // function to delete last element
     void pop() { current--; }
+    
+    void clear(){current=0;}
  
     // function to get size of the vector
     int size() { return current; }
@@ -175,7 +136,69 @@ public:
     T& operator *(){
         return *arr; //gatau bener ap salah
     }
+    
+    void operator =(vectorClass<T> i){
+        arr=i.arr;
+        capacity=i.capacity;
+     
+        // current is the number of elements
+        // currently present in the vector
+        current=i.current;
+    }
+
 };
+
+
+/*//////////////////////////THE CLASSES/////////////////////////////*/
+class User {
+public:
+    string userID;
+    vectorClass<int> accBikeType;
+    int start, end;
+    int startStat, endStat;
+    User(string ID, vectorClass<int> bikes, int st, int en, int staSta, int endSta){
+        userID=ID;
+        accBikeType=bikes;
+        start=st;
+        end=en;
+        startStat=staSta;
+        endStat=endSta;
+    }
+    User(){
+        userID="0";
+        start=0;
+        end=0;
+        startStat=0;
+        endStat=0;
+    }
+    friend ostream& operator << (ostream &os,  User &person){
+        int index=0;
+        os<< person.userID<<" ";
+    
+        while(index<person.accBikeType.size()){
+            if(index!=0)os<<",";
+            os<<"B"<<person.accBikeType[index];
+            index++;
+        }
+        os<<" "<<person.start<<" "<<person.end<<" "<<person.startStat<<" "<<person.endStat;
+        return os;
+    }
+    int operator / (int a){
+        return start/a;
+    }
+    
+    void operator = ( User &b){
+        userID=b.userID;
+        accBikeType=b.accBikeType;
+        start=b.start;
+        end=b.end;
+        startStat=b.startStat;
+        endStat=b.endStat;
+     
+    }
+    
+};
+
 
 
 /*/////////////////////////////// DIJKSTRA ALGO /////////////////////////////*/
@@ -272,6 +295,58 @@ void build_maxheap(T *a,int n) { //TODO!! build_maxheap dilakuin setelah semuany
       max_heap(a,k,n);
    }
 }
+/*//////////////////HEAPIFY///////////////////////////////////////////////*/
+template<typename T>
+
+void heapifyMaxHeap(T *arr, int n, int i)
+{
+    int largest = i; // Initialize largest as root
+    int l = 2 * i ; // left = 2*i + 1
+    int r = 2 * i + 1; // right = 2*i + 2
+ 
+    // If left child is larger than root
+    if (l <= n && arr[l] > arr[largest]) //TODO , yakin <n ?
+        largest = l;
+ 
+    // If right child is larger than largest so far
+    if (r <= n && arr[r] > arr[largest])
+        largest = r;
+ 
+    // If largest is not root
+    if (largest != i) {
+        swap(arr[i], arr[largest]);
+ 
+        // Recursively heapify the affected sub-tree
+        heapifyMaxHeap(arr, n, largest);
+    }
+}
+/*//////////////////////////////HEAP DELETION/////////////////////////////*/
+
+
+// Function to delete the root from Heap
+template<typename T>
+void heapifyInsertion(T* arr, int n, int i)
+{
+    // Find parent
+    int parent = (i - 1) / 2;
+ 
+    if (parent> 0) {
+        // For Max-Heap
+        // If current node is greater than its parent
+        // Swap both of them and call heapify again
+        // for the parent
+        if (arr[i] > arr[parent]) {
+            swap(arr[i], arr[parent]);
+ 
+            // Recursively heapify the parent node
+            heapifyInsertion(arr, n, parent);
+        }
+    }
+}
+ 
+
+
+ 
 /*///////////////////////////////////RESIZEEEE////////////////////////////*/
 template<typename T>
 void ResizeArray(T *&orig, int size) {
@@ -320,6 +395,7 @@ public:
         minTime=a.minTime;
     }
     
+    
 };
 /*//////////////////////////AVL TREE THINGY///////////////////////////////*/
 class BicType
@@ -359,6 +435,36 @@ class BicType
     }
     void buildHeap(){
         build_maxheap(bikes, curr);
+    }
+    void deleteRoot()
+    {
+        // Get the last element
+        //BicId lastElement = bikes[curr];
+     
+        // Replace root with last element
+        bikes[1] = bikes[curr];
+     
+        // Decrease size of heap by 1
+        curr--;
+     
+        // heapify the root node
+        heapifyMaxHeap(bikes, curr, 1);
+    }
+    void insertNode(BicId Key)
+    {
+        if(curr==capacity-1){
+            ResizeArray(bikes, capacity);
+            capacity*=2;
+        }
+        // Increase the size of Heap by 1
+        curr++;
+     
+        // Insert the element at end of Heap
+        bikes[curr] = Key;
+     
+        // Heapify the new node following a
+        // Bottom-up approach
+        heapifyInsertion(bikes, curr, curr);
     }
     
 };
@@ -533,6 +639,31 @@ void heapifyRoot(BicType *root){
         heapifyRoot(root->right);
     }
 }
+/*//////////////////////////////TAKE THE BIKE TYPES///////////////////////*/
+vectorClass<int> bikeTypeConvert(string biketypes){
+    vectorClass<int> temp;
+    stringstream stream(biketypes);
+    int store;
+    string token;
+    while(getline(stream,token,',')){
+        store=stoi(token.substr(1));
+        temp.push_back(store);
+    }
+    return temp;
+}
+BicType* search( BicType* root, int key)
+{
+    // Base Cases: root is null or key is present at root
+    if (root == NULL || root->key == key)
+       return root;
+    
+    // Key is greater than root's key
+    if (root->key < key)
+       return search(root->right, key);
+ 
+    // Key is smaller than root's key
+    return search(root->left, key);
+}
  
 /*//////////////////////////THE STATION CLASS/////////////////////////////*/
 
@@ -560,6 +691,11 @@ public:
     }
     void heapify(){
         heapifyRoot(root);
+    }
+    BicType* find (int key)
+    {
+        return search(root,key);
+        
     }
     
 };
@@ -625,18 +761,17 @@ void basic(string selectedCase){
     bikeInfo.open(casePath+"/bike_info.txt");
     vectorClass<User> request; //Store user requests
     string temp1, temp2, temp3, temp4;
-    int a,b;
+    int a,b,c,d;
     double doubleTemp;
     string line, out;
     
     
    
     int col=1;
-    int** point; //dont forget to delete the memory
+     //dont forget to delete the memory
     
     
-    double depreciationConst;
-    int rentalCountLim;
+    
     
     Station* listStation;
     
@@ -721,17 +856,7 @@ map.close();
             
         }
         cout<<endl<<endl;
-       for(int i=0;i<col;i++){
-           cout<<"S"<<i<<endl<<endl;
-           listStation[i].heapify();
-           cout<<"outputType: "<<endl;
-           listStation[i].outputType();
-           cout<<endl;
-           cout<<"outputAll: "<<endl;
-           cout<<endl;
-           listStation[i].outputAll();
-           cout<<endl;
-        }
+       
         bike.close();
     }
     
@@ -746,9 +871,9 @@ map.close();
     }
     cout<<endl;
     cout<<"after dijkstra"<<endl<<endl; //di dijkstra kalo butuh aja
-    /*for(int i=0;i<col;i++){
+    for(int i=0;i<col;i++){
         dijkstra(col, point, i);
-    }*/
+    }
     
     for (int i=0; i<col;i++){
         for(int j=0;j<col;j++){
@@ -758,12 +883,19 @@ map.close();
     }
     cout<<endl;
     int flag=0;
+    vectorClass<int> intTemp;
+    //User_Id, Accept_Bike_Type, Start_Time, End_Time, Start_Point, End_Point
+    //U4 B1 327 469 S3 S1
     if(userReq.is_open()){
         while(getline(userReq,line)){
             stringstream stream;
             stream<<line;
             stream>>temp1>>temp2>>a>>b>>temp3>>temp4;
-            User temp(temp1,temp2,a,b,temp3,temp4);
+            intTemp=bikeTypeConvert(temp2);
+            c=stoi(temp3.substr(1));
+            d=stoi(temp4.substr(1));
+            
+            User temp(temp1,intTemp,a,b,c,d);//temp3, 4 jadi int, potong S depannya, temp2 jadi vector of int
             request.push_back(temp);
             flag++;
             
@@ -772,13 +904,61 @@ map.close();
     }else cout<< "unable to open"<<endl;
   
     countSort<User>(&request,request.size()); //sort the request with manual radix sort
-    /* //JANGAN D DELETE ini buat print request.
-    for(int i=0;i<request.size();i++){
-        cout<<request[i]<<endl;
-    }*/
- 
-   
     
+
+    for(int i=0;i<col;i++){
+        cout<<"S"<<i<<endl<<endl;
+        listStation[i].heapify();
+        cout<<"outputType: "<<endl;
+        listStation[i].outputType();
+        cout<<endl;
+        cout<<"outputAll: "<<endl;
+        cout<<endl;
+        listStation[i].outputAll();
+        cout<<endl;
+     }
+    cout<<endl;
+    cout<<"mulai dr sini"<<endl;
+    listStation[3].outputAll();
+    cout<<endl<<endl;
+    
+    listStation[3].root->left->deleteRoot();
+    
+    cout<<endl<<endl;
+    
+    listStation[3].outputAll();
+    
+    
+    cout<<endl<<"kelar"<<endl;
+
+    
+    
+    
+    
+
+    intTemp.clear();
+    int indexReq=0;
+    int indexBikeType=0;
+    
+    vectorClass<BicType*> bikeTypeVector;
+    while(indexReq<request.size()){
+        bikeTypeVector.clear();
+        indexBikeType=0;
+        cout<<request[indexReq]<<endl;
+        while(indexBikeType<request[indexReq].accBikeType.size()){
+            if(listStation[request[indexReq].startStat].find(request[indexReq].accBikeType[indexBikeType])!=NULL){
+                bikeTypeVector.push_back(listStation[request[indexReq].startStat].find(request[indexReq].accBikeType[indexBikeType]));
+            }
+            indexBikeType++;
+        }
+        if(bikeTypeVector.size()==0){cout<<endl;} // print yg null semua
+        else {
+            bikeTypeVector.print();
+        }
+       
+        indexReq++;
+    }
 }
+
 
 
