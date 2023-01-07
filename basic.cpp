@@ -386,6 +386,7 @@ public:
         return price>a.price ? true : false;
     }
     bool operator <= (BicId a){
+        
         return price<=a.price ? true : false;
     }
     void operator = (const BicId a){
@@ -394,8 +395,9 @@ public:
         price=a.price;
         minTime=a.minTime;
     }
-    
-    
+    BicId* find(int startTime){
+        
+    }
 };
 /*//////////////////////////AVL TREE THINGY///////////////////////////////*/
 class BicType
@@ -436,6 +438,13 @@ class BicType
     void buildHeap(){
         build_maxheap(bikes, curr);
     }
+    BicId* returnMatch(int startTime){
+        if (curr<1){
+            return NULL;
+        }
+        return bikes[1].find(startTime); //balikinnya pake ampersand &
+        
+    }
     void deleteRoot()
     {
         // Get the last element
@@ -450,6 +459,7 @@ class BicType
         // heapify the root node
         heapifyMaxHeap(bikes, curr, 1);
     }
+    
     void insertNode(BicId Key)
     {
         if(curr==capacity-1){
@@ -939,6 +949,7 @@ map.close();
     intTemp.clear();
     int indexReq=0;
     int indexBikeType=0;
+    int indexBikeTypeVector;
     
     vectorClass<BicType*> bikeTypeVector;
     while(indexReq<request.size()){
@@ -951,9 +962,14 @@ map.close();
             }
             indexBikeType++;
         }
-        if(bikeTypeVector.size()==0){cout<<endl;} // print yg null semua
+        if(bikeTypeVector.size()==0){cout<<endl;} // print yg null semua,
         else {
+            cout<<"debuging"<<endl;
+            cout<<bikeTypeVector[0]->bikes[1]<<endl;
+            bikeTypeVector[0]->bikes[1].minTime++;
+            cout<<bikeTypeVector[0]->bikes[1]<<endl;
             bikeTypeVector.print();
+            //cek ada yg matching ga
         }
        
         indexReq++;
