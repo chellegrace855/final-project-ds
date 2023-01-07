@@ -21,82 +21,56 @@ using namespace std;
 template <typename T>
 class vectorClass {
 
-    // arr is the integer pointer
-    // which stores the address of our vector
     T* arr;
  
     int capacity;
  
-    // current is the number of elements
-    // currently present in the vector
     int current;
 public:
 
-    // Default constructor to initialise
-    // an initial capacity of 1 element and
-    // allocating storage using dynamic allocation
     vectorClass()
     {
         arr = new T[1];
         capacity = 1;
         current = 0;
     }
-    /*vectorClass(int row, T inside)
+    ~ vectorClass()
     {
-        arr = new T[row];
-        capacity = row;
-        current = row;
-        for(int i=0;i<row;i++){
-            arr[i]=inside;
-        }
-    }*/
-       //destructor to deallocate storage allocated by dynamic allocation
-       //to prevent memory leak
- 
-    // Function to add an element at the last
+        delete [] arr;
+    }
+    
     void push_back(T data)
     {
- 
-        // if the number of elements is equal to the
-        // capacity, that means we don't have space to
-        // accommodate more elements. We need to double the
-        // capacity
+
         if (current == capacity) {
             T* temp = new T[2 * capacity];
  
-            // copying old array elements to new array
             for (int i = 0; i < capacity; i++) {
                 temp[i] = arr[i];
             }
  
-            // deleting previous array
             delete[] arr;
             capacity *= 2;
             arr = temp;
         }
  
-        // Inserting data
         arr[current] = data;
         current++;
     }
  
-    // function to add element at any index
     void push_back(T data, int index)
     {
  
-        // if index is equal to capacity then this
-        // function is same as push defined above
         if (index == capacity)
             push_back(data);
         else
             arr[index] = data;
     }
  
-    // function to extract element at any index
+  
     T get(int index)
     {
  
-        // if index is within the range
         if (index < current)
             return arr[index];
     }
@@ -295,82 +269,6 @@ void dijkstra(int sz, int** graph, int src)
     
 }
 
-/*/////////////////////////////////////////MAX HEAP///////////////////////*/
-template<typename T>
-void max_heap(T *a, int m, int n) {
-   T t;
-    int j;
-   t = a[m];
-   j = 2 * m;
-   while (j <= n) {
-      if (j < n && a[j+1] > a[j])
-         j = j + 1;
-      if (t > a[j])
-         break;
-      else if (t <= a[j]) {
-         a[j / 2] = a[j];
-         j = 2 * j;
-      }
-   }
-   a[j/2] = t;
-   return;
-}
-template<typename T>
-void build_maxheap(T *a,int n) { //TODO!! build_maxheap dilakuin setelah semuanya masuk, mesti bikin jg pas dy delete spy O(log n)
-   int k;
-   for(k = n/2; k >= 1; k--) {
-      max_heap(a,k,n);
-   }
-}
-/*//////////////////HEAPIFY///////////////////////////////////////////////*/
-template<typename T>
-
-void heapifyMaxHeap(T *arr, int n, int i)
-{
-    int largest = i; // Initialize largest as root
-    int l = 2 * i ; // left = 2*i + 1
-    int r = 2 * i + 1; // right = 2*i + 2
- 
-    // If left child is larger than root
-    if (l <= n && arr[l] > arr[largest]) //TODO , yakin <n ?
-        largest = l;
- 
-    // If right child is larger than largest so far
-    if (r <= n && arr[r] > arr[largest])
-        largest = r;
- 
-    // If largest is not root
-    if (largest != i) {
-        swap(arr[i], arr[largest]);
- 
-        // Recursively heapify the affected sub-tree
-        heapifyMaxHeap(arr, n, largest);
-    }
-}
-/*//////////////////////////////HEAP DELETION/////////////////////////////*/
-
-
-// Function to delete the root from Heap
-template<typename T>
-void heapifyInsertion(T* arr, int n, int i)
-{
-    // Find parent
-    int parent = (i - 1) / 2;
- 
-    if (parent> 0) {
-        // For Max-Heap
-        // If current node is greater than its parent
-        // Swap both of them and call heapify again
-        // for the parent
-        if (arr[i] > arr[parent]) {
-            swap(arr[i], arr[parent]);
- 
-            // Recursively heapify the parent node
-            heapifyInsertion(arr, n, parent);
-        }
-    }
-}
- 
 
 
  
@@ -384,7 +282,7 @@ void ResizeArray(T *&orig, int size) {
     orig = resized;
 }
 /*////////////////////////////BICYCLE ID CLASS////////////////////////////*/
-class BicId{ //TODO!!
+class BicId{
 public:
     int bikeType;
     int id;
@@ -432,277 +330,6 @@ public:
     }
     
 };
-/*//////////////////////////AVL TREE THINGY///////////////////////////////*/
-class BicType
-{
-    public:
-    int key;
-    BicType *left;
-    BicType *right;
-    int height;
-   // BicId *bikes;
-    int curr; //if curr == capacity-1 double the capacity, copy semuanya ( num of bikes=curr)
-    BicType(int num){
-        key = num;
-        left = NULL;
-        right = NULL;
-        height = 1; // new node is initially
-                          // added at leaf
-        curr=1;
-    }
-    
-    void print(){
-        cout<<"B"<<key<<" has "<<curr<<" bikes"<<"\n";
-    }
-    
-    int size(){
-        return curr; //notes : if curr==0 delete bic type
-    }
-
-};
- 
-// A utility function to get the
-// height of the tree
-int height(BicType *N)
-{
-    if (N == NULL)
-        return 0;
-    return N->height;
-}
- 
-// A utility function to get maximum
-// of two integers
-int max(int a, int b)
-{
-    return (a > b)? a : b;
-}
- 
-
-
-
-BicType *rightRotate(BicType *y)
-{
-    BicType *x = y->left;
-    BicType *T2 = x->right;
- 
-    // Perform rotation
-    x->right = y;
-    y->left = T2;
- 
-    // Update heights
-    y->height = max(height(y->left),
-                    height(y->right)) + 1;
-    x->height = max(height(x->left),
-                    height(x->right)) + 1;
- 
-    // Return new root
-    return x;
-}
- 
-// A utility function to left
-// rotate subtree rooted with x
-// See the diagram given above.
-BicType *leftRotate(BicType *x)
-{
-    BicType *y = x->right;
-    BicType *T2 = y->left;
- 
-    // Perform rotation
-    y->left = x;
-    x->right = T2;
- 
-    // Update heights
-    x->height = max(height(x->left),
-                    height(x->right)) + 1;
-    y->height = max(height(y->left),
-                    height(y->right)) + 1;
- 
-    // Return new root
-    return y;
-}
- 
-// Get Balance factor of node N
-int getBalance(BicType *N)
-{
-    if (N == NULL)
-        return 0;
-    return height(N->left) - height(N->right);
-}
-BicType* minValueNode(BicType* node)
-{
-    BicType* current = node;
-  
-    /* loop down to find the leftmost leaf */
-    while (current->left != NULL)
-        current = current->left;
-  
-    return current;
-}
-
-BicType* deleteNode(BicType* root, int key)
-{
-      
-    // STEP 1: PERFORM STANDARD BST DELETE
-    if (root == NULL)
-        return root;
-  
-    // If the key to be deleted is smaller
-    // than the root's key, then it lies
-    // in left subtree
-    if ( key < root->key )
-        root->left = deleteNode(root->left, key);
-  
-    // If the key to be deleted is greater
-    // than the root's key, then it lies
-    // in right subtree
-    else if( key > root->key )
-        root->right = deleteNode(root->right, key);
-  
-    // if key is same as root's key, then
-    // This is the node to be deleted
-    else
-    {
-        // node with only one child or no child
-        if( (root->left == NULL) ||
-            (root->right == NULL) )
-        {
-            BicType* temp = root->left ?
-                         root->left :
-                         root->right;
-  
-            // No child case
-            if (temp == NULL)
-            {
-                temp = root;
-                root = NULL;
-            }
-            else // One child case
-            *root = *temp; // Copy the contents of
-                           // the non-empty child
-            free(temp);
-        }
-        else
-        {
-            // node with two children: Get the inorder
-            // successor (smallest in the right subtree)
-            BicType* temp = minValueNode(root->right);
-  
-            // Copy the inorder successor's
-            // data to this node
-            root->key = temp->key;
-  
-            // Delete the inorder successor
-            root->right = deleteNode(root->right,
-                                     temp->key);
-        }
-    }
-  
-    // If the tree had only one node
-    // then return
-    if (root == NULL)
-    return root;
-  
-    // STEP 2: UPDATE HEIGHT OF THE CURRENT NODE
-    root->height = 1 + max(height(root->left),
-                           height(root->right));
-  
-    // STEP 3: GET THE BALANCE FACTOR OF
-    // THIS NODE (to check whether this
-    // node became unbalanced)
-    int balance = getBalance(root);
-  
-    // If this node becomes unbalanced,
-    // then there are 4 cases
-  
-    // Left Left Case
-    if (balance > 1 &&
-        getBalance(root->left) >= 0)
-        return rightRotate(root);
-  
-    // Left Right Case
-    if (balance > 1 &&
-        getBalance(root->left) < 0)
-    {
-        root->left = leftRotate(root->left);
-        return rightRotate(root);
-    }
-  
-    // Right Right Case
-    if (balance < -1 &&
-        getBalance(root->right) <= 0)
-        return leftRotate(root);
-  
-    // Right Left Case
-    if (balance < -1 &&
-        getBalance(root->right) > 0)
-    {
-        root->right = rightRotate(root->right);
-        return leftRotate(root);
-    }
-  
-    return root;
-}
-// Recursive function to insert a key
-// in the subtree rooted with node and
-// returns the new root of the subtree.
-BicType* insert(BicType* node, int key)
-{
-    /* 1. Perform the normal BST insertion */
-    if (node == NULL){
-        BicType* newbiketype = new BicType(key);
-        
-        return newbiketype ;
-    }
-    
- 
-    if (key < node->key)
-        node->left = insert(node->left, key);
-    else if (key > node->key)
-        node->right = insert(node->right, key);
-    else // Equal keys are not allowed in BST
-        //panggil buat tambahin Bikes ! TODO!!!!!!!!!!
-    { node->curr++; //todo
-        return node;}
- 
-    /* 2. Update height of this ancestor node */
-    node->height = 1 + max(height(node->left),
-                        height(node->right));
- 
-    /* 3. Get the balance factor of this ancestor
-        node to check whether this node became
-        unbalanced */
-    int balance = getBalance(node);
- 
-    // If this node becomes unbalanced, then
-    // there are 4 cases
- 
-    // Left Left Case
-    if (balance > 1 && key < node->left->key)
-        return rightRotate(node);
- 
-    // Right Right Case
-    if (balance < -1 && key > node->right->key)
-        return leftRotate(node);
- 
-    // Left Right Case
-    if (balance > 1 && key > node->left->key)
-    {
-        node->left = leftRotate(node->left);
-        return rightRotate(node);
-    }
- 
-    // Right Left Case
-    if (balance < -1 && key < node->right->key)
-    {
-        node->right = rightRotate(node->right);
-        return leftRotate(node);
-    }
- 
-    /* return the (unchanged) node pointer */
-    
-    return node;
-}
-
 
 /*//////////////////////////////TAKE THE BIKE TYPES///////////////////////*/
 vectorClass<int> bikeTypeConvert(string biketypes){
@@ -716,19 +343,7 @@ vectorClass<int> bikeTypeConvert(string biketypes){
     }
     return temp;
 }
-BicType* search( BicType* root, int key)
-{
-    // Base Cases: root is null or key is present at root
-    if (root == NULL || root->key == key)
-       return root;
-    
-    // Key is greater than root's key
-    if (root->key < key)
-       return search(root->right, key);
- 
-    // Key is smaller than root's key
-    return search(root->left, key);
-}
+
  /*////////////////////MERGE SORTING ALGO/////////////////////////////////*/
 template<typename T>
 void merge(T array[], int const left, int const mid,
@@ -867,11 +482,6 @@ public:
         {
             key = theBikes[i];
             j = i - 1;
-            
-            // Move elements of arr[0..i-1],
-            // that are greater than key, to one
-            // position ahead of their
-            // current position
             while (j >= 0 && theBikes[j].id > key.id)
             {
                 theBikes[j + 1] = theBikes[j];
