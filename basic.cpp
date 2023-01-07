@@ -18,14 +18,13 @@ int rentalCountLim;
 
 using namespace std;
 /*////////////////////////VECTOR CLASS///////////////////////*/
-template <typename T> class vectorClass {
+template <typename T>
+class vectorClass {
 
     // arr is the integer pointer
     // which stores the address of our vector
     T* arr;
  
-    // capacity is the total storage
-    // capacity of the vector
     int capacity;
  
     // current is the number of elements
@@ -120,7 +119,7 @@ public:
     void outputVector()
     {
         for (int i = 0; i < current; i++) {
-            cout << arr[i] << endl;
+            cout <<arr[i] << endl;
         }
     
     }
@@ -408,7 +407,7 @@ public:
     }
     friend ostream& operator << (ostream &os, const BicId &bike){
         
-        os<<"B"<<bike.bikeType<<" "<<bike.id<<" "<<bike.rentCount<<" "<<bike.price<<" "<<bike.minTime;
+        os<<bike.id<<" "<<"B"<<bike.bikeType<<" "<<bike.price<<" "<<bike.rentCount<<endl;
         return os;
     }
     bool operator > (BicId a){ //todo
@@ -826,21 +825,20 @@ void mergeSort(T array[], int const begin, int const end)
 
 class Station{
 public:
-    //bool shortestPath; //dijkstra lgsg aj
-    int numBic;//number of bicycle type
-   // BicType* root; //bikin avl tree
     vectorClass<BicId> theBikes;
     
     Station(){
        // root=NULL;
-        numBic=0;
+     
+        vectorClass<BicId> *a = new vectorClass<BicId>;
+        theBikes= *a;
         
     }
     void insertBike(int type, int bikeID,int rentcount,double initPrice, int startTime){
        // root=insert(root,type); // TODO
         BicId* temp= new BicId(type, bikeID,  rentcount,  initPrice, startTime);
         theBikes.push_back(*temp);
-        numBic++;
+
     }
 
     BicId* deleteBike(int startTime, int endTime, int station1, int station2, bool* type){
@@ -855,38 +853,49 @@ public:
                     
                     
                 }*/
-                numBic--;
+ 
                 //kurangin jumlah sepeda di bic type di station ini
                 //cek klo curr == 0 delete node bic type nya
                 
                 swap(theBikes[index], theBikes[theBikes.size()-1]);
                 temp=&theBikes[theBikes.size()-1];
                 //debug
-                cout<<endl<<"sebelum pop: "<<endl<<theBikes.size()<<endl;
                 theBikes.pop();
-                if(theBikes.size()>0){
-                    cout<<"setelah pop: "<<theBikes.size()<<endl;
-                    mergeSort(&theBikes, 0, theBikes.size()-1);
-                    
-                }
+                mergeSort(&theBikes, 0, theBikes.size()-1);
                 break;
             }
             index++;
         }
-        
+        mergeSort(&theBikes, 0, theBikes.size()-1);
         return temp;
     }
     void printBike(){
         theBikes.outputVector();
     }
-    /*void outputType(){
-        preOrder(root);
-    }
-    void outputInfo(){
-        inOrder(root);
-    }*/
+
     void mergesort(){
         mergeSort(&theBikes, 0, theBikes.size()-1);
+    }
+    void ascendBikeSort(){
+        int i,j;
+        BicId key;
+        for (i = 1; i < theBikes.size(); i++)
+        {
+            key = theBikes[i];
+            j = i - 1;
+            
+            // Move elements of arr[0..i-1],
+            // that are greater than key, to one
+            // position ahead of their
+            // current position
+            while (j >= 0 && theBikes[j].id > key.id)
+            {
+                theBikes[j + 1] = theBikes[j];
+                j = j - 1;
+            }
+            theBikes[j + 1] = key;
+        }
+        
     }
     
 };
@@ -1122,65 +1131,13 @@ map.close();
         cout<<request[i]<<endl;
     }
     
-    //DEBUG
-    /*
-    BicId* temporaryDebug;
     
-    for(int i=0;i<col;i++){
-        
-        cout<<"S"<<i<<endl<<endl;
-        cout<<"outputType: "<<endl;
-        listStation[i].outputType();
-        cout<<endl;
-        cout<<"outputInfo: "<<endl;
-        cout<<endl;
-        listStation[i].outputInfo();
-        cout<<endl;
-        cout<<"di station "<<i<<" ada bike:"<<endl;
-        listStation[i].printBike();
-        cout<<endl;
-        listStation[i].mergesort();
-        cout<<"di station "<<i<<" ada bike yang uda di atur:"<<endl;
-        listStation[i].printBike();
-        cout<<endl;
-        temporaryDebug=listStation[i].deleteBike(4);
-        cout<<"di station "<<i<<" ada bike yang uda di delete paling tinggi:"<<endl;
-        listStation[i].printBike();
-        cout<<endl;
-        cout<<"outputType setelah deletion: "<<endl;
-        listStation[i].outputType();
-        cout<<endl;
-        
-     }*/
     cout<<endl;
-    /*
-    cout<<"mulai dr sini"<<endl;
-    listStation[3].outputInfo();
-    cout<<endl<<endl;
     
-    listStation[3].root->left->deleteRoot();
-    
-    cout<<endl<<endl;
-    
-    listStation[3].outputInfo();
-    
-    
-    cout<<endl<<"kelar"<<endl;
-
-    
-    */
     
     for(int i=0;i<col;i++){
         
         cout<<"S"<<i<<endl<<endl;
-        /*
-        cout<<"outputType sebelum proses: "<<endl;
-        listStation[i].outputType();
-        cout<<endl;
-        cout<<"outputInfo sebelum proses: "<<endl;
-        cout<<endl;
-        listStation[i].outputInfo();
-        cout<<endl;*/
         cout<<"di station "<<i<<" ada bike:"<<endl;
         listStation[i].printBike();
         cout<<endl;
@@ -1198,14 +1155,32 @@ map.close();
     while(indexReq<request.size()){
         indexBikeType=0;
         //cout<<request[indexReq]<<endl;
+        //BicId* deleteBike(int startTime, int endTime, int station1, int station2, bool* type) BALIK
         bikeStore=listStation[request[indexReq].startStat].deleteBike(request[indexReq].start,request[indexReq].end, request[indexReq].startStat, request[indexReq].endStat, request[indexReq].bikeType);
         if(bikeStore==NULL){
             reqResult<<request[indexReq].userID<<" 0 0 0 0 0"<<endl;
         } else {
-            //print ke transfer log
+            //debug
+            cout<<endl<<"before in starting station S"<<request[indexReq].startStat<<endl;
+            listStation[request[indexReq].startStat].mergesort();
+            listStation[request[indexReq].startStat].printBike();
+            cout<<endl<<endl;
+            
+            cout<<endl<<"before in ending station S"<<request[indexReq].endStat<<endl;
+            listStation[request[indexReq].endStat].mergesort();
+            listStation[request[indexReq].endStat].printBike();
+            cout<<endl<<endl;
+            
+            
+            
+            
             transferLog<<bikeStore->id<<" S"<<request[indexReq].startStat<<" S"<<request[indexReq].endStat<<" "<<request[indexReq].start<<" "<<request[indexReq].start+point[request[indexReq].startStat][request[indexReq].endStat]<<" "<<request[indexReq].userID<<endl;
             //print ke reqResult
             revenue=point[request[indexReq].startStat][request[indexReq].endStat]*(bikeStore->price);
+            //debug
+            cout<<"bike id: "<<bikeStore->id<<" move from S"<<request[indexReq].startStat<<" to S"<<request[indexReq].endStat<<" by time "<<request[indexReq].start+point[request[indexReq].startStat][request[indexReq].endStat]<<endl;
+            
+            
             
             reqResult<<request[indexReq].userID<<" 1 "<<bikeStore->id<<" "<<request[indexReq].start<<" "<<request[indexReq].start+point[request[indexReq].startStat][request[indexReq].endStat]<<" "<<revenue<<endl;
             /*
@@ -1222,23 +1197,31 @@ map.close();
                 
             }
             
+            cout<<endl<<"after in ending station S"<<request[indexReq].endStat<<endl;
+            listStation[request[indexReq].endStat].mergesort();
+            listStation[request[indexReq].endStat].printBike();
+            cout<<endl<<endl;
+            
+            cout<<endl<<"after in starting station S"<<request[indexReq].startStat<<endl;
+            listStation[request[indexReq].startStat].mergesort();
+            listStation[request[indexReq].startStat].printBike();
+            cout<<endl;
+            
+            
         }
-        
-       
-        
-       
         indexReq++;
     }
-    cout<<endl<<endl<<"PROSEESSSSS!!!!"<<endl<<endl;
+    /*
+     // station_id, bike_id, bike_type, rental_price, and rental_count
+     S2 0 B1 9.95 1
+     */
     for(int i=0;i<col;i++){
-        
-        cout<<"S"<<i<<endl<<endl;
-        cout<<"di station "<<i<<" ada bike:"<<endl;
-        listStation[i].printBike();
-        cout<<endl;
-        
-        
-     }
+        listStation[i].ascendBikeSort();
+        for(int j=0;j<listStation[i].theBikes.size();j++){
+            cout<<"S"<<i<<" "<<listStation[i].theBikes[j].id<<" B"<<listStation[i].theBikes[j].bikeType<<" "<<listStation[i].theBikes[j].price<<" "<<listStation[i].theBikes[j].rentCount<<endl;
+        }
+    }
+    
     
      transferLog.close();
      reqResult.close();
