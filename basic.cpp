@@ -12,7 +12,7 @@
 int** point; //matrix map nya di bikin universal variable spy bisa di akses di semua class dll
 double depreciationConst;
 int rentalCountLim;
-int revenue=0;
+
 
 
 
@@ -828,16 +828,16 @@ class Station{
 public:
     //bool shortestPath; //dijkstra lgsg aj
     int numBic;//number of bicycle type
-    BicType* root; //bikin avl tree
+   // BicType* root; //bikin avl tree
     vectorClass<BicId> theBikes;
     
     Station(){
-        root=NULL;
+       // root=NULL;
         numBic=0;
         
     }
     void insertBike(int type, int bikeID,int rentcount,double initPrice, int startTime){
-        root=insert(root,type); // TODO
+       // root=insert(root,type); // TODO
         BicId* temp= new BicId(type, bikeID,  rentcount,  initPrice, startTime);
         theBikes.push_back(*temp);
         numBic++;
@@ -879,12 +879,12 @@ public:
     void printBike(){
         theBikes.outputVector();
     }
-    void outputType(){
+    /*void outputType(){
         preOrder(root);
     }
     void outputInfo(){
         inOrder(root);
-    }
+    }*/
     void mergesort(){
         mergeSort(&theBikes, 0, theBikes.size()-1);
     }
@@ -1173,37 +1173,55 @@ map.close();
     for(int i=0;i<col;i++){
         
         cout<<"S"<<i<<endl<<endl;
+        /*
         cout<<"outputType sebelum proses: "<<endl;
         listStation[i].outputType();
         cout<<endl;
         cout<<"outputInfo sebelum proses: "<<endl;
         cout<<endl;
         listStation[i].outputInfo();
-        cout<<endl;
+        cout<<endl;*/
         cout<<"di station "<<i<<" ada bike:"<<endl;
         listStation[i].printBike();
         cout<<endl;
         
         
      }
-    
+
     intTemp.clear();
     int indexReq=0;
     int indexBikeType=0;
     int indexBikeTypeVector;
     BicId* bikeStore=NULL;
-    /*cout<<endl<<endl<<"MARI DEBUGGGGG"<<endl<<request[0]<<endl<<endl;
-    bikeStore=listStation[request[0].startStat].deleteBike(request[0].start,request[0].end, request[0].startStat, request[0].endStat, request[0].bikeType);*/
-    
-    //BicId* deleteBike(int startTime, int endTime, int station1, int station2, bool type[]){
-   // int startTime, int endTime, int station1, int station2, bool type[]
-   
+    int revenue;
+
     while(indexReq<request.size()){
         indexBikeType=0;
         //cout<<request[indexReq]<<endl;
         bikeStore=listStation[request[indexReq].startStat].deleteBike(request[indexReq].start,request[indexReq].end, request[indexReq].startStat, request[indexReq].endStat, request[indexReq].bikeType);
         if(bikeStore==NULL){
-            cout<<"HELLO BESTIE AKU NOMOR "<<request[indexReq];
+            reqResult<<request[indexReq].userID<<" 0 0 0 0 0"<<endl;
+        } else {
+            //print ke transfer log
+            transferLog<<bikeStore->id<<" S"<<request[indexReq].startStat<<" S"<<request[indexReq].endStat<<" "<<request[indexReq].start<<" "<<request[indexReq].start+point[request[indexReq].startStat][request[indexReq].endStat]<<" "<<request[indexReq].userID<<endl;
+            //print ke reqResult
+            revenue=point[request[indexReq].startStat][request[indexReq].endStat]*(bikeStore->price);
+            
+            reqResult<<request[indexReq].userID<<" 1 "<<bikeStore->id<<" "<<request[indexReq].start<<" "<<request[indexReq].start+point[request[indexReq].startStat][request[indexReq].endStat]<<" "<<revenue<<endl;
+            /*
+             void insertBike(int type, int bikeID,int rentcount,double initPrice, int startTime){
+                // root=insert(root,type); // TODO
+                 BicId* temp= new BicId(type, bikeID,  rentcount,  initPrice, startTime);
+                 theBikes.push_back(*temp);
+                 numBic++;
+             }
+             */
+            //tambahin ke station end, yg ud d modifin, skalian di cek satu persatu
+            if(bikeStore->rentCount<rentalCountLim-1&&(bikeStore->price-depreciationConst)>0.0){
+                listStation[request[indexReq].endStat].insertBike(bikeStore->bikeType, bikeStore->id, bikeStore->rentCount+1,bikeStore->price-depreciationConst, request[indexReq].start+point[request[indexReq].startStat][request[indexReq].endStat]);
+                
+            }
+            
         }
         
        
@@ -1215,13 +1233,6 @@ map.close();
     for(int i=0;i<col;i++){
         
         cout<<"S"<<i<<endl<<endl;
-        cout<<"outputType setelah proses: "<<endl;
-        listStation[i].outputType();
-        cout<<endl;
-        cout<<"outputInfo setelah proses: "<<endl;
-        cout<<endl;
-        listStation[i].outputInfo();
-        cout<<endl;
         cout<<"di station "<<i<<" ada bike:"<<endl;
         listStation[i].printBike();
         cout<<endl;
